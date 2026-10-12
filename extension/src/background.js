@@ -15,7 +15,6 @@ const CORE_URL = "ws://127.0.0.1:8787";
 const RECONNECT_MS = 2000;
 
 let ws = null;
-let wsReady = false;
 const attached = new Map(); // tabId -> { origin }
 
 /* ----------------------------- core link ----------------------------- */
@@ -25,22 +24,35 @@ async function getToken() {
   return weftToken || "";
 }
 
+function wsConnected() {
+  return !!ws && ws.readyState === WebSocket.OPEN;
+}
+
 function connect() {
+  // Never stack sockets. Loading the extension fires onInstalled *and* the bottom connect(),
+  // and onStartup/SW-wake can pile on too. A second socket would leave `ws` pointing at a
+  // CONNECTING one while an older socket's onopen tries to send → "Still in CONNECTING state".
+  if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) return;
+
+  let sock;
   try {
-    ws = new WebSocket(CORE_URL);
+    sock = new WebSocket(CORE_URL);
   } catch {
     scheduleReconnect();
     return;
   }
-  ws.onopen = async () => {
-    wsReady = true;
+  ws = sock;
+
+  sock.onopen = async () => {
     const token = await getToken();
-    send({ t: "hello", token, browser: "chrome", profile: "default" });
+    // The socket may have been replaced or closed during the await.
+    if (ws !== sock || sock.readyState !== WebSocket.OPEN) return;
+    rawSend(sock, { t: "hello", token, browser: "chrome", profile: "default" });
     setBadge("", "#1f9d6b");
   };
-  ws.onmessage = (e) => handleCommand(JSON.parse(e.data));
-  ws.onclose = () => { wsReady = false; setBadge("•", "#8a93a6"); scheduleReconnect(); };
-  ws.onerror = () => { try { ws.close(); } catch {} };
+  sock.onmessage = (e) => handleCommand(JSON.parse(e.data));
+  sock.onclose = () => { if (ws === sock) ws = null; setBadge("•", "#8a93a6"); scheduleReconnect(); };
+  sock.onerror = () => { try { sock.close(); } catch { /* ignore */ } };
 }
 
 let reconnectTimer = null;
@@ -49,8 +61,13 @@ function scheduleReconnect() {
   reconnectTimer = setTimeout(connect, RECONNECT_MS);
 }
 
+// Only ever writes to an OPEN socket — the readyState check is the real guard, not a flag.
+function rawSend(sock, msg) {
+  if (sock && sock.readyState === WebSocket.OPEN) sock.send(JSON.stringify(msg));
+}
+
 function send(msg) {
-  if (wsReady && ws) ws.send(JSON.stringify(msg));
+  rawSend(ws, msg);
 }
 
 function setBadge(text, color) {
@@ -62,7 +79,7 @@ function setBadge(text, color) {
 
 // The popup already requested host permission (needs the user gesture) and passes origin + tabId.
 async function startCapture(origin, tabId) {
-  if (!wsReady) return { ok: false, error: "Weft app isn't running." };
+  if (!wsConnected()) return { ok: false, error: "Weft app isn't running." };
   send({ t: "convert", origin });
   await snapshotSession(tabId, origin);
   await attachDebugger(tabId, origin);
@@ -217,7 +234,7 @@ async function findTabForOrigin(origin) {
 
 chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
   if (msg?.t === "convert") { startCapture(msg.origin, msg.tabId).then(reply); return true; }
-  if (msg?.t === "status") { reply({ connected: wsReady }); return true; }
+  if (msg?.t === "status") { reply({ connected: wsConnected() }); return true; }
 });
 
 chrome.runtime.onStartup.addListener(connect);
