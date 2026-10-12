@@ -6,9 +6,6 @@ apps/desktop/src-tauri/target/
 target/
 *.tsbuildinfo
 
-# SECRET — the vendor's license signing key. NEVER commit.
-tools/license/keys/
-
 # os / editor
 .DS_Store
 *.log

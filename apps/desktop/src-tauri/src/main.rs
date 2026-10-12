@@ -5,10 +5,9 @@
 // and an "mcps-changed" event tells the UI to refresh live as capture happens.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use serde::Serialize;
 use std::sync::{Arc, Mutex};
 use tauri::{Emitter, State};
-use weft_core::state::{CoreState, EndpointView, Mcp, Shared};
+use weft_core::state::{CoreState, EndpointView, Mcp, RecentRequest, Shared};
 
 #[tauri::command]
 fn list_mcps(state: State<Shared>) -> Vec<Mcp> {
@@ -49,54 +48,18 @@ fn delete_mcp(id: String, state: State<Shared>) {
 }
 
 #[tauri::command]
-fn install_client(id: String, client: String) {
-    // TODO(core): write the client's MCP config pointing at mcp-shim/index.js.
-    println!("install {id} into {client}");
-}
-
-#[tauri::command]
 fn get_endpoints(id: String, state: State<Shared>) -> Vec<EndpointView> {
     state.lock().unwrap().endpoints_of(&id)
 }
 
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-struct LicenseStatus {
-    licensed: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    edition: Option<String>,
-}
-
+/// Recent captured requests across all sites — the app's local activity feed.
 #[tauri::command]
-fn activate_license(key: String) -> LicenseStatus {
-    match weft_core::license::verify(&key) {
-        Some(lic) => LicenseStatus {
-            licensed: true,
-            name: Some(lic.name),
-            edition: Some(lic.edition),
-        },
-        None => LicenseStatus {
-            licensed: false,
-            name: None,
-            edition: None,
-        },
-    }
-}
-
-#[tauri::command]
-fn license_status() -> LicenseStatus {
-    // TODO: read stored key from keychain and re-verify; compute trial from first-run timestamp.
-    LicenseStatus {
-        licensed: false,
-        name: None,
-        edition: None,
-    }
+fn recent_activity(state: State<Shared>) -> Vec<RecentRequest> {
+    state.lock().unwrap().recent(50)
 }
 
 fn main() {
-    let shared: Shared = Arc::new(Mutex::new(CoreState::seeded()));
+    let shared: Shared = Arc::new(Mutex::new(CoreState::default()));
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
@@ -109,10 +72,8 @@ fn main() {
             pause_mcp,
             resume_mcp,
             delete_mcp,
-            install_client,
             get_endpoints,
-            activate_license,
-            license_status
+            recent_activity
         ])
         .setup(move |app| {
             // Emit "mcps-changed" whenever the core mutates, so the UI refreshes live.

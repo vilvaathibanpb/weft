@@ -1,20 +1,18 @@
-import { Lib, Compass, Plug, Scroll, Gear, Check } from "../lib/icons";
+import { Lib, Plug, Scroll, Gear } from "../lib/icons";
 
-export type View = "library" | "discover" | "clients" | "audit" | "settings";
+export type View = "library" | "clients" | "audit" | "settings";
 
 const NAV: { id: View; label: string; Icon: typeof Lib }[] = [
   { id: "library", label: "Library", Icon: Lib },
-  { id: "discover", label: "Discover", Icon: Compass },
   { id: "clients", label: "Clients", Icon: Plug },
   { id: "audit", label: "Audit log", Icon: Scroll },
   { id: "settings", label: "Settings", Icon: Gear },
 ];
 
 export function Sidebar({
-  view, setView, count, licensed, trialDaysLeft, onBuy,
+  view, setView, count,
 }: {
   view: View; setView: (v: View) => void; count: number;
-  licensed: boolean; trialDaysLeft: number; onBuy: () => void;
 }) {
   return (
     <aside className="sidebar">
@@ -28,18 +26,10 @@ export function Sidebar({
         ))}
       </div>
 
-      {licensed ? (
-        <div className="plan" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ color: "var(--ok)", display: "grid", placeItems: "center" }}><Check /></span>
-          <div><b style={{ fontSize: 12.5 }}>Licensed</b><div className="muted" style={{ fontSize: 11.5 }}>Weft 1.x · thank you</div></div>
-        </div>
-      ) : (
-        <div className="plan">
-          <div className="row"><b>Free trial</b><span className="muted">{trialDaysLeft} days left</span></div>
-          <div className="bar"><i style={{ width: `${Math.max(4, (trialDaysLeft / 14) * 100)}%` }} /></div>
-          <a className="up" href="#" onClick={(e) => { e.preventDefault(); onBuy(); }}>Buy Weft — $39</a>
-        </div>
-      )}
+      <div className="plan" style={{ fontSize: 11.5 }}>
+        <div className="muted">Weft v0.1.0</div>
+        <div className="muted">Free &amp; open source · MIT</div>
+      </div>
     </aside>
   );
 }

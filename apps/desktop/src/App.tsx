@@ -3,10 +3,9 @@ import { Sidebar, type View } from "./components/Sidebar";
 import { Library } from "./components/Library";
 import { Detail } from "./components/Detail";
 import { CommandPalette } from "./components/CommandPalette";
-import { Clients, Discover, Audit, Settings, type Theme } from "./components/Views";
+import { Clients, Audit, Settings, type Theme } from "./components/Views";
 import { useMcps, store } from "./lib/store";
-import { useToasts, toast } from "./lib/toast";
-import { verifyLicense } from "./lib/license";
+import { useToasts } from "./lib/toast";
 import { Search } from "./lib/icons";
 
 export default function App() {
@@ -16,24 +15,6 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [palette, setPalette] = useState(false);
   const [theme, setThemeState] = useState<Theme>(() => (localStorage.getItem("weft-theme") as Theme) || "system");
-  const [licensed, setLicensed] = useState<boolean>(() => {
-    try { const k = localStorage.getItem("weft-license"); return !!(k && verifyLicense(k)); } catch { return false; }
-  });
-  const trialDaysLeft = 12; // demo value; real build reads first-run timestamp
-
-  // Offline verification — a valid Ed25519-signed key unlocks; invalid is rejected locally.
-  const activate = useCallback((key: string): boolean => {
-    const lic = verifyLicense(key);
-    if (lic) {
-      setLicensed(true);
-      try { localStorage.setItem("weft-license", key); } catch { /* ignore */ }
-      toast(`Licensed to ${lic.name} — thank you!`);
-      return true;
-    }
-    toast("That license key isn't valid.");
-    return false;
-  }, []);
-  const buy = useCallback(() => toast("Opening checkout…"), []);
 
   const selected = mcps.find((m) => m.id === selectedId) ?? null;
 
@@ -81,14 +62,13 @@ export default function App() {
       </div>
 
       <div className="body">
-        <Sidebar view={view} setView={setView} count={mcps.length} licensed={licensed} trialDaysLeft={trialDaysLeft} onBuy={buy} />
+        <Sidebar view={view} setView={setView} count={mcps.length} />
 
         <main className="main">
           {view === "library" && <Library mcps={mcps} selectedId={selectedId} onSelect={setSelectedId} />}
           {view === "clients" && <Clients />}
-          {view === "discover" && <Discover />}
           {view === "audit" && <Audit />}
-          {view === "settings" && <Settings theme={theme} setTheme={setTheme} licensed={licensed} onActivate={activate} onBuy={buy} />}
+          {view === "settings" && <Settings theme={theme} setTheme={setTheme} />}
         </main>
       </div>
 

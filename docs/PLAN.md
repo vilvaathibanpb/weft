@@ -6,8 +6,8 @@ is the product; the **browser extension is one button**: "Convert this site to M
 
 Everything runs locally. Captured data and credentials never leave the machine.
 
-> v1 (menu-bar-only, Swift) is superseded by this. See `ARCHITECTURE.md` (needs a matching
-> refresh) and `MONETIZATION.md`.
+> v1 (menu-bar-only, Swift) is superseded by this. See `ARCHITECTURE.md`. Weft shipped as a
+> **free, open-source (MIT)** tool — the earlier one-time-purchase/licensing plan was dropped.
 
 ---
 
@@ -21,7 +21,7 @@ Everything runs locally. Captured data and credentials never leave the machine.
 | Extension | captures + UI | **one button**: "Convert this site to MCP" |
 | MCP state | implicit | **explicit lifecycle**: Ready / Outdated / Needs-login / Not-possible |
 | Refresh | n/a | **opens the browser, re-syncs the session** |
-| Business | — | **one-time purchase**, offline license (see `MONETIZATION.md`) |
+| Business | — | **free & open source (MIT)** — no account, no server, no telemetry |
 
 **Why Tauri:** cross-platform, ~10MB bundles, Rust backend suited to the local server, process
 spawning, OS keychain, and launching the browser. Electron is the fallback only if we'd rather
@@ -131,8 +131,7 @@ header-only "light mode" and mark schemas `partial`.
 - **P3 — MCP serving + client install.** stdio shim; one-click install for all three clients.
 - **P4 — Lifecycle.** Probe loop, Needs-login/Outdated detection, **Refresh-opens-browser** flow.
 - **P5 — Replays + consent + keychain + audit.**
-- **P6 — Licensing.** 14-day free trial + offline Ed25519 license key (no account, no server).
-- **P7 — Polish + packaging.** Signing/notarization (mac), MSIX/Authenticode (win), auto-update.
+- **P6 — Polish + packaging.** Signing/notarization (mac), MSIX/Authenticode (win), auto-update.
 
 ---
 
@@ -140,5 +139,5 @@ header-only "light mode" and mark schemas `partial`.
 
 Automating authenticated access to third-party sites can conflict with their ToS, and some sites
 actively block it. Position and build accordingly: **your own session, your own data, local-only,
-user-initiated.** This shapes what a "recipe marketplace" can safely offer (see `MONETIZATION.md`
-§ risks) — avoid shipping credentials or scraping-as-a-service for sites that forbid it.
+user-initiated.** This also shapes what any future "recipe marketplace" could safely offer —
+endpoint maps only, never credentials or scraping-as-a-service for sites that forbid it.

@@ -33,6 +33,13 @@ export interface Endpoint {
   confidence: "high" | "low";
 }
 
+export interface RecentRequest {
+  origin: string;
+  method: string;
+  path: string;
+  status: number;
+}
+
 export const STATUS_LABEL: Record<McpStatus, string> = {
   capturing: "Capturing",
   ready: "Ready",

@@ -5,7 +5,7 @@
  * in a browser. Components never know which is which.
  */
 import { useSyncExternalStore } from "react";
-import type { ClientId, Endpoint, Mcp } from "./types";
+import type { ClientId, Endpoint, Mcp, RecentRequest } from "./types";
 
 const inTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
@@ -97,6 +97,11 @@ export const store = {
     const m = state.find((x) => x.id === id);
     if (!m || m.status === "not_possible") return [];
     return sampleEndpoints.slice(0, Math.max(1, Math.min(sampleEndpoints.length, Math.ceil(m.endpointCount / 8))));
+  },
+
+  async recent(): Promise<RecentRequest[]> {
+    if (inTauri) return invoke<RecentRequest[]>("recent_activity");
+    return [];
   },
 };
 

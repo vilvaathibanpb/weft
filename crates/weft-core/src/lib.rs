@@ -14,7 +14,6 @@
 //! `runtime.json` so the shim can find + auth us, and relays status to the UI via events.
 
 pub mod bridge;
-pub mod license;
 pub mod mcp;
 pub mod model;
 pub mod openapi;
