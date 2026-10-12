@@ -1,0 +1,53 @@
+name: Bug report
+description: Something didn't work the way you expected.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. **Never paste real credentials, cookies, tokens, or capture dumps.**
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What did you do, and what went wrong?
+      placeholder: I clicked "Convert this site to MCP" on … and …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: input
+    id: site
+    attributes:
+      label: Site (if relevant)
+      description: The origin you were converting, if you're comfortable sharing it.
+      placeholder: https://app.example.com
+  - type: dropdown
+    id: component
+    attributes:
+      label: Where
+      options: [Desktop app, Chrome extension, MCP shim / AI client, Installer, Not sure]
+    validations:
+      required: true
+  - type: input
+    id: client
+    attributes:
+      label: AI client + version (if relevant)
+      placeholder: Claude Code 1.x / Cursor / Codex / Claude Desktop
+  - type: input
+    id: os
+    attributes:
+      label: OS + version
+      placeholder: macOS 15.1 / Windows 11 / Ubuntu 24.04
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs (redacted)
+      description: Relevant output from the app console or the client. Scrub anything sensitive.
+      render: shell

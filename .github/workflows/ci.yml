@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core:
+    name: Rust core (test + lint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: crates/weft-core
+      - name: fmt
+        working-directory: crates/weft-core
+        run: cargo fmt --check
+      - name: clippy
+        working-directory: crates/weft-core
+        run: cargo clippy --all-targets -- -D warnings
+      - name: test
+        working-directory: crates/weft-core
+        run: cargo test
+
+  web:
+    name: Desktop frontend (typecheck + build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: typecheck
+        working-directory: apps/desktop
+        run: npx tsc --noEmit
+      - name: build
+        working-directory: apps/desktop
+        run: npm run build
+
+  shim:
+    name: Shim + installer smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: syntax-check the shim
+        run: node --check mcp-shim/index.js
+      - name: installer dry-run (all clients)
+        run: node scripts/weft-install.mjs all --shim mcp-shim/index.js --dry-run
+
+  desktop:
+    name: Desktop app (cargo check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: install Tauri system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev \
+            patchelf build-essential curl wget file libxdo-dev libssl-dev
+      - run: npm ci
+      - name: build frontend (tauri reads dist/)
+        working-directory: apps/desktop
+        run: npm run build
+      - name: cargo check
+        working-directory: apps/desktop/src-tauri
+        run: cargo check

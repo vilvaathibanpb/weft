@@ -1,0 +1,11 @@
+{
+  "name": "@weft/license-tools",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Vendor-side offline license tooling: generate an Ed25519 keypair and sign perpetual licenses. The private key never ships; only the public key is embedded in the app.",
+  "bin": {
+    "weft-keygen": "keygen.mjs",
+    "weft-sign": "sign.mjs"
+  }
+}

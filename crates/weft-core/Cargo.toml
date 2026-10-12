@@ -1,0 +1,23 @@
+[package]
+name = "weft-core"
+version = "0.1.0"
+edition = "2021"
+description = "Weft core: WS server, endpoint model, OpenAPI synthesis, probe loop, MCP server."
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+axum = { version = "0.7", features = ["ws"] }
+rusqlite = { version = "0.31", features = ["bundled"] }
+ed25519-dalek = "2"
+base64 = "0.22"
+hex = "0.4"
+futures-util = "0.3"
+getrandom = "0.2"
+# MCP is implemented directly as JSON-RPC 2.0 over the loopback control socket (see mcp.rs) —
+# no external MCP SDK, so there is no version to track and the wire format stays in our control.
+
+[dev-dependencies]
+tokio-tungstenite = "0.24"
+futures-util = "0.3"

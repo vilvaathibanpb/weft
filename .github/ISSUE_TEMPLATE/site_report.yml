@@ -1,0 +1,36 @@
+name: Site report
+description: A site that captures badly, or is wrongly flagged possible/not-possible.
+labels: [site-report]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Site data is one of the most useful contributions. **No credentials or capture dumps**, please.
+  - type: input
+    id: site
+    attributes:
+      label: Site origin
+      placeholder: https://app.example.com
+    validations:
+      required: true
+  - type: dropdown
+    id: observed
+    attributes:
+      label: What Weft showed
+      options: [Ready, Outdated, Needs login, Not possible, Capturing (stuck), Few/no endpoints]
+    validations:
+      required: true
+  - type: dropdown
+    id: expected
+    attributes:
+      label: What you expected
+      options: [Ready, Not possible, Something else (explain below)]
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: e.g. "all requests are signed with an X-Signature header", "API is GraphQL", "websocket only".
+    validations:
+      required: true
