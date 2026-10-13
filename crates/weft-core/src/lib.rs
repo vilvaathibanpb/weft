@@ -68,6 +68,11 @@ pub fn runtime_path() -> PathBuf {
     }
 }
 
+/// `.../state.json` — the persisted library (sites + endpoint models), beside `runtime.json`.
+pub fn state_path() -> PathBuf {
+    runtime_path().with_file_name("state.json")
+}
+
 /// Persist the runtime handshake file atomically-ish (write temp, rename).
 pub fn write_runtime(rt: &Runtime) -> std::io::Result<()> {
     let path = runtime_path();

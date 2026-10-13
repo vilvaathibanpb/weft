@@ -28,6 +28,8 @@
   button.cta:disabled { opacity: .5; cursor: default; }
   .msg { margin-top: 12px; font-size: 12px; color: var(--soft); min-height: 16px; }
   .msg.ok { color: var(--ok); } .msg.err { color: var(--danger); }
+  .hint { margin-top: 12px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 11.5px; line-height: 1.45; color: var(--soft); }
+  .hint b { color: var(--ink); font-weight: 600; }
   .foot { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 7px; font-size: 11.5px; color: var(--soft); }
   .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--soft); }
   .dot.on { background: var(--ok); }
@@ -38,6 +40,10 @@
   <div class="site" id="site">—</div>
   <button class="cta" id="convert">Convert this site to MCP</button>
   <div class="msg" id="msg"></div>
+  <div class="hint" id="hint">
+    <b>You only do this once per site.</b> After converting, use the site one time — open the pages
+    and run the actions you want your AI to reach. Weft maps each into a tool and the site is ready.
+  </div>
   <div class="foot"><span class="dot" id="dot"></span><span id="conn">connecting to app…</span></div>
   <script src="popup.js"></script>
 </body>

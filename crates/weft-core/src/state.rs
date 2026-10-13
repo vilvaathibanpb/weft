@@ -2,13 +2,14 @@
 //! Short, non-async critical sections only — never hold the lock across `.await`.
 
 use crate::model::{Endpoint, Model};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, VecDeque};
+use std::path::Path;
 use std::sync::{Arc, Mutex};
 
 const RECENT_CAP: usize = 100;
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Mcp {
     pub id: String,
@@ -18,9 +19,9 @@ pub struct Mcp {
     pub initials: String,
     pub status: String, // mirrors McpStatus in @weft/protocol
     pub endpoint_count: u32,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub last_refreshed: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
 }
 
@@ -35,7 +36,7 @@ pub struct EndpointView {
 }
 
 /// Session auth surface for an origin — names/keys only, never values.
-#[derive(Clone, Default, Serialize)]
+#[derive(Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AuthContext {
     pub cookie_names: Vec<String>,
@@ -53,17 +54,45 @@ pub struct RecentRequest {
     pub status: u16,
 }
 
-#[derive(Default)]
+#[derive(Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct CoreState {
     pub mcps: Vec<Mcp>,
     pub models: HashMap<String, Model>,     // keyed by origin
     pub auth: HashMap<String, AuthContext>, // keyed by origin
+    // The live activity feed is ephemeral — never persisted across restarts.
+    #[serde(skip)]
     pub recent: VecDeque<RecentRequest>,
 }
 
 pub type Shared = Arc<Mutex<CoreState>>;
 
 impl CoreState {
+    /// Load persisted state from disk, or start empty if the file is missing or unreadable.
+    /// Corruption never crashes the app — a bad file just yields a fresh, empty library.
+    pub fn load(path: &Path) -> Self {
+        match std::fs::read_to_string(path) {
+            Ok(s) if !s.trim().is_empty() => serde_json::from_str(&s).unwrap_or_default(),
+            _ => Self::default(),
+        }
+    }
+
+    /// Persist the library (sites + endpoint models + auth surface) atomically-ish. The live
+    /// `recent` feed is intentionally not written. Failures are swallowed — losing a save is
+    /// never worth taking the app down.
+    pub fn save(&self, path: &Path) {
+        if let Some(dir) = path.parent() {
+            let _ = std::fs::create_dir_all(dir);
+        }
+        let Ok(json) = serde_json::to_string_pretty(self) else {
+            return;
+        };
+        let tmp = path.with_extension("json.tmp");
+        if std::fs::write(&tmp, json).is_ok() {
+            let _ = std::fs::rename(&tmp, path);
+        }
+    }
+
     /// Ensure an MCP exists for this origin (create it in "capturing" if new). Returns its id.
     pub fn ensure(&mut self, origin: &str) -> String {
         let id = id_for(origin);
@@ -351,6 +380,36 @@ mod tests {
         assert_eq!(title_of("github.com"), "Github");
         assert_eq!(title_of("localhost"), "Localhost");
         assert_eq!(initials_of("app.linear.app"), "LI");
+    }
+
+    #[test]
+    fn save_then_load_round_trips_sites_and_models() {
+        let mut s = CoreState::default();
+        s.ensure("https://medium.com"); // a just-added site with no traffic yet
+        s.observe("https://app.linear.app", "GET", "https://app.linear.app/api/issues", 200);
+
+        let dir = std::env::temp_dir().join(format!("weft-test-{}", std::process::id()));
+        let path = dir.join("state.json");
+        s.save(&path);
+
+        let loaded = CoreState::load(&path);
+        // The capturing site persists even with zero endpoints.
+        let medium = loaded.resolve("medium-com").expect("medium persisted");
+        assert_eq!(medium.status, "capturing");
+        // The ready site keeps its endpoint model.
+        let linear = loaded.resolve("app-linear-app").expect("linear persisted");
+        assert_eq!(linear.status, "ready");
+        assert_eq!(loaded.endpoints_of(&linear.id).len(), 1);
+        // The ephemeral feed is not persisted.
+        assert_eq!(loaded.recent(10).len(), 0);
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn load_missing_or_corrupt_file_is_empty_not_a_crash() {
+        let missing = std::env::temp_dir().join("weft-nope-does-not-exist.json");
+        assert_eq!(CoreState::load(&missing).mcps.len(), 0);
     }
 
     #[test]

@@ -32,7 +32,7 @@ pub enum NotPossible {
     Drm,
 }
 
-#[derive(Default)]
+#[derive(Default, Serialize, Deserialize)]
 pub struct Model {
     endpoints: HashMap<String, Endpoint>, // key = "METHOD template"
 }

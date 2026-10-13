@@ -4,19 +4,22 @@ import { CLIENT_LABEL, store, useMcps } from "../lib/store";
 import { toast } from "../lib/toast";
 import { Plug, Scroll, Check } from "../lib/icons";
 
-/* ---- Clients: the one command that registers Weft's MCP server per AI client ---- */
+/* ---- Clients: register Weft's MCP server per AI client, from inside the app ---- */
 export function Clients() {
   const clients: ClientId[] = ["claude-code", "claude-desktop", "codex", "cursor"];
-  const [copied, setCopied] = useState<string | null>(null);
+  const [done, setDone] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState<string | null>(null);
 
-  const copy = async (c: ClientId) => {
-    const cmd = `node scripts/weft-install.mjs ${c}`;
+  const register = async (c: ClientId) => {
+    setBusy(c);
     try {
-      await navigator.clipboard.writeText(cmd);
-      setCopied(c);
-      setTimeout(() => setCopied((x) => (x === c ? null : x)), 1500);
-    } catch {
-      toast(cmd);
+      const where = await store.installClient(c);
+      setDone((d) => ({ ...d, [c]: where }));
+      toast(`${CLIENT_LABEL[c]}: added to ${where}`);
+    } catch (e) {
+      toast(`Couldn't set up ${CLIENT_LABEL[c]}: ${String(e)}`);
+    } finally {
+      setBusy(null);
     }
   };
 
@@ -29,19 +32,22 @@ export function Clients() {
             <div className="avatar" style={{ background: "var(--surface-3)", color: "var(--ink-2)" }}><Plug /></div>
             <div className="meta">
               <div className="name">{CLIENT_LABEL[c]}</div>
-              <div className="origin" style={{ fontFamily: "var(--mono)" }}>node scripts/weft-install.mjs {c}</div>
+              <div className="origin" style={{ fontFamily: "var(--mono)", fontSize: 11.5 }}>
+                {done[c] ? done[c] : "writes one weft entry into this client's MCP config"}
+              </div>
             </div>
             <div className="actions">
-              <button className="btn sm" onClick={() => copy(c)}>
-                {copied === c ? <><Check /> Copied</> : "Copy command"}
+              <button className="btn sm" onClick={() => register(c)} disabled={busy === c}>
+                {done[c] ? <><Check /> Installed · re-run</> : busy === c ? "Installing…" : "Install"}
               </button>
             </div>
           </div>
         ))}
       </div>
       <p style={{ color: "var(--ink-3)", fontSize: 12.5, marginTop: 16 }}>
-        Run the command from the repo, then restart the client. Each client spawns the same tiny
-        shim, so they all read one endpoint model and one live session.
+        Install writes a single <code>weft</code> entry into the client's own config — nothing else is
+        touched. Restart the client afterwards. Every client spawns the same shim, so they share one
+        endpoint model and one live session. You can also use <b>Open in client</b> on any ready site.
       </p>
     </div>
   );

@@ -40,6 +40,7 @@ const sampleEndpoints: Endpoint[] = [
 /* ----------------------------- store core ----------------------------- */
 
 let state: Mcp[] = inTauri ? [] : [...seed];
+let loaded = false; // guards against double load() mounting two pollers
 const subs = new Set<() => void>();
 function emit() { state = [...state]; subs.forEach((f) => f()); }
 function patch(id: string, p: Partial<Mcp>) {
@@ -52,17 +53,18 @@ export const store = {
   get() { return state; },
 
   async load() {
-    if (!inTauri) return;
-    state = await invoke<Mcp[]>("list_mcps");
-    emit();
+    if (!inTauri || loaded) return;
+    loaded = true;
+    const refetch = async () => { state = await invoke<Mcp[]>("list_mcps"); emit(); };
+    await refetch();
     // Live refresh: the Rust core emits "mcps-changed" as the extension streams capture in.
     try {
       // @ts-expect-error — global provided by Tauri (withGlobalTauri)
-      await window.__TAURI__.event.listen("mcps-changed", async () => {
-        state = await invoke<Mcp[]>("list_mcps");
-        emit();
-      });
+      await window.__TAURI__.event.listen("mcps-changed", refetch);
     } catch { /* events unavailable outside Tauri */ }
+    // Belt-and-suspenders: poll every 5s so capture progress is always visible, even if an
+    // event is dropped or the core is mutated by a path that doesn't notify.
+    setInterval(() => { refetch().catch(() => { /* app closing / transient */ }); }, 5000);
   },
 
   async convert(origin: string) {
@@ -102,6 +104,18 @@ export const store = {
   async recent(): Promise<RecentRequest[]> {
     if (inTauri) return invoke<RecentRequest[]>("recent_activity");
     return [];
+  },
+
+  /** Register Weft's MCP server in a client's config file. Returns the file path touched. */
+  async installClient(client: ClientId): Promise<string> {
+    if (inTauri) return invoke<string>("install_client", { client });
+    return `~/.config/${client}`; // mock
+  },
+
+  /** Launch the client (GUI apps) / tell the user to restart it (CLIs). Returns a message. */
+  async openClient(client: ClientId): Promise<string> {
+    if (inTauri) return invoke<string>("open_client", { client });
+    return `Opening ${CLIENT_LABEL[client]}…`; // mock
   },
 };
 

@@ -43,7 +43,7 @@ $("convert").addEventListener("click", async () => {
   chrome.runtime.sendMessage({ t: "convert", origin, tabId: currentTab.id }, (res) => {
     btn.textContent = "Convert this site to MCP";
     if (res?.ok) {
-      setMsg("Weaving " + new URL(res.origin).host + " — browse the site to discover endpoints.", "ok");
+      setMsg("Capturing " + new URL(res.origin).host + " — use the site once now (reload the tab to capture the first request).", "ok");
     } else {
       btn.disabled = false;
       setMsg(res?.error || "Something went wrong.", "err");

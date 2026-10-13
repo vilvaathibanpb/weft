@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Mcp } from "../lib/types";
 import { McpRow } from "./McpRow";
-import { Plus, Weave } from "../lib/icons";
+import { Plus, Weave, Compass } from "../lib/icons";
 import { store } from "../lib/store";
 import { toast } from "../lib/toast";
 
@@ -10,6 +10,14 @@ export function Library({
 }: { mcps: Mcp[]; selectedId: string | null; onSelect: (id: string) => void }) {
   const [adding, setAdding] = useState(false);
   const [url, setUrl] = useState("");
+  // Show the "how capture works" note only until the user converts their first site.
+  const [showHint, setShowHint] = useState(() => {
+    try { return localStorage.getItem("weft-capture-hint-seen") !== "1"; } catch { return true; }
+  });
+  const dismissHint = () => {
+    setShowHint(false);
+    try { localStorage.setItem("weft-capture-hint-seen", "1"); } catch { /* ignore */ }
+  };
 
   const submit = () => {
     const origin = normalize(url);
@@ -17,6 +25,7 @@ export function Library({
     store.convert(origin);
     toast(`Weaving ${new URL(origin).host}`);
     setUrl(""); setAdding(false);
+    dismissHint();
   };
 
   return (
@@ -27,6 +36,18 @@ export function Library({
         <span className="spacer" />
         <button className="btn primary" onClick={() => setAdding((v) => !v)}><Plus /> Convert site</button>
       </div>
+
+      {showHint && (
+        <div className="reason note" style={{ marginBottom: 14, alignItems: "flex-start" }}>
+          <Compass style={{ color: "var(--accent)", flex: "none" }} />
+          <div style={{ fontSize: 12.5, color: "var(--ink-2)" }}>
+            <b>You only set up each site once.</b> After you convert it, use it one time in your browser —
+            open the pages and run the actions you want your AI to reach. Weft maps each into a tool, and
+            the site is ready. No need to repeat it.
+          </div>
+          <button className="btn sm ghost" style={{ flex: "none" }} onClick={dismissHint}>Got it</button>
+        </div>
+      )}
 
       {adding && (
         <div className="mcp" style={{ gridTemplateColumns: "1fr auto", marginBottom: 14 }}>
@@ -47,7 +68,7 @@ export function Library({
         <div className="empty">
           <div className="glyph"><Weave style={{ width: 24, height: 24 }} /></div>
           <h2>No MCPs yet</h2>
-          <p>Open a site you're logged into and click the <b>Weft</b> button in your browser — <code>Convert this site to MCP</code>. It'll show up here as it's woven.</p>
+          <p>Open a site you're logged into and click the <b>Weft</b> button in your browser — <code>Convert this site to MCP</code>. Then <b>browse the site normally</b>: Weft maps each API call it sees into a tool, so visit the pages you want your AI to reach.</p>
           <button className="btn primary" onClick={() => setAdding(true)}><Plus /> Convert a site</button>
         </div>
       ) : (

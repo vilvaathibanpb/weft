@@ -5,9 +5,19 @@
 // and an "mcps-changed" event tells the UI to refresh live as capture happens.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod install;
+
 use std::sync::{Arc, Mutex};
-use tauri::{Emitter, State};
+use tauri::{AppHandle, Emitter, State};
 use weft_core::state::{CoreState, EndpointView, Mcp, RecentRequest, Shared};
+
+/// Write the library to disk after a command mutates it. Swallows errors — a missed save must
+/// never fail the user's action. The lock is released before this runs (callers scope their guard).
+fn save_state(state: &Shared) {
+    if let Ok(s) = state.lock() {
+        s.save(&weft_core::state_path());
+    }
+}
 
 #[tauri::command]
 fn list_mcps(state: State<Shared>) -> Vec<Mcp> {
@@ -16,35 +26,48 @@ fn list_mcps(state: State<Shared>) -> Vec<Mcp> {
 
 #[tauri::command]
 fn convert_site(origin: String, state: State<Shared>) -> Option<Mcp> {
-    let mut s = state.lock().unwrap();
-    let id = s.ensure(&origin);
-    s.mcps.iter().find(|m| m.id == id).cloned()
+    let m = {
+        let mut s = state.lock().unwrap();
+        let id = s.ensure(&origin);
+        s.mcps.iter().find(|m| m.id == id).cloned()
+    };
+    save_state(&state);
+    m
 }
 
 #[tauri::command]
 fn refresh_mcp(id: String, state: State<Shared>) -> Option<Mcp> {
     // TODO(core): send `open` to the extension, re-probe, set status from the probe result.
-    state.lock().unwrap().set_status(&id, "ready")
+    let m = state.lock().unwrap().set_status(&id, "ready");
+    save_state(&state);
+    m
 }
 
 #[tauri::command]
 fn recapture_mcp(id: String, state: State<Shared>) -> Option<Mcp> {
-    state.lock().unwrap().set_status(&id, "capturing")
+    let m = state.lock().unwrap().set_status(&id, "capturing");
+    save_state(&state);
+    m
 }
 
 #[tauri::command]
 fn pause_mcp(id: String, state: State<Shared>) -> Option<Mcp> {
-    state.lock().unwrap().set_status(&id, "paused")
+    let m = state.lock().unwrap().set_status(&id, "paused");
+    save_state(&state);
+    m
 }
 
 #[tauri::command]
 fn resume_mcp(id: String, state: State<Shared>) -> Option<Mcp> {
-    state.lock().unwrap().set_status(&id, "ready")
+    let m = state.lock().unwrap().set_status(&id, "ready");
+    save_state(&state);
+    m
 }
 
 #[tauri::command]
 fn delete_mcp(id: String, state: State<Shared>) {
     state.lock().unwrap().remove(&id);
+    save_state(&state);
 }
 
 #[tauri::command]
@@ -58,8 +81,21 @@ fn recent_activity(state: State<Shared>) -> Vec<RecentRequest> {
     state.lock().unwrap().recent(50)
 }
 
+/// Write the `weft` MCP entry into a client's own config file. Returns the file path touched.
+#[tauri::command]
+fn install_client(app: AppHandle, client: String) -> Result<String, String> {
+    install::install(&app, &client)
+}
+
+/// Launch the client (GUI apps) so it picks up the newly installed server.
+#[tauri::command]
+fn open_client(client: String) -> Result<String, String> {
+    install::open(&client)
+}
+
 fn main() {
-    let shared: Shared = Arc::new(Mutex::new(CoreState::default()));
+    // Restore the library persisted from previous runs (empty on first launch).
+    let shared: Shared = Arc::new(Mutex::new(CoreState::load(&weft_core::state_path())));
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
@@ -73,13 +109,21 @@ fn main() {
             resume_mcp,
             delete_mcp,
             get_endpoints,
-            recent_activity
+            recent_activity,
+            install_client,
+            open_client
         ])
         .setup(move |app| {
-            // Emit "mcps-changed" whenever the core mutates, so the UI refreshes live.
+            // On every live capture change: refresh the UI *and* persist, so sites and their
+            // endpoint models survive a restart. notify() is always called with the lock released
+            // (see ws::handle_message), so re-locking to save here can't deadlock.
             let handle = app.handle().clone();
+            let persist_shared = shared.clone();
             let notify: weft_core::ws::Notifier = Arc::new(move || {
                 let _ = handle.emit("mcps-changed", ());
+                if let Ok(s) = persist_shared.lock() {
+                    s.save(&weft_core::state_path());
+                }
             });
 
             // The live bridge is shared: the WS server owns the extension socket, and the MCP

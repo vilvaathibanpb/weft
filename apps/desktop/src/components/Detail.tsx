@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import type { Endpoint, Mcp } from "../lib/types";
 import { REASON_TEXT } from "../lib/types";
 import { StatusPill } from "./StatusPill";
-import { Alert, Refresh, ExternalLink } from "../lib/icons";
+import { Alert, Refresh, ExternalLink, Compass } from "../lib/icons";
 import { store, CLIENT_LABEL } from "../lib/store";
 import { toast } from "../lib/toast";
+import { ClientPicker } from "./ClientPicker";
 
 export function Detail({ m, onClose }: { m: Mcp; onClose: () => void }) {
   const [eps, setEps] = useState<Endpoint[] | null>(null);
+  const [picking, setPicking] = useState(false);
 
   useEffect(() => {
     let live = true;
@@ -38,6 +40,21 @@ export function Detail({ m, onClose }: { m: Mcp; onClose: () => void }) {
           {m.status === "not_possible" && m.reason && (
             <div className="reason"><Alert style={{ color: "var(--bad)", flex: "none" }} /><div>{REASON_TEXT[m.reason]}</div></div>
           )}
+          {m.status === "capturing" && (
+            <div className="reason note" style={{ borderColor: "var(--accent)", background: "var(--accent-wash)" }}>
+              <Compass style={{ color: "var(--accent)", flex: "none" }} />
+              <div>
+                <b>Use the site once.</b> Weft only maps what it sees — so in your browser, open the
+                pages and run the actions you want your AI to reach (your feed, a story, search, settings).
+                Each one becomes a tool. Do this once and the site is set — you won't need to repeat it.
+                <div style={{ color: "var(--ink-3)", marginTop: 4 }}>
+                  {m.endpointCount > 0
+                    ? `${m.endpointCount} endpoint${m.endpointCount === 1 ? "" : "s"} captured so far — keep browsing to find more.`
+                    : "Nothing captured yet. A page reload is the quickest first sample."}
+                </div>
+              </div>
+            </div>
+          )}
           {m.status === "needs_login" && (
             <div className="reason note"><Alert style={{ color: "var(--warn)", flex: "none" }} /><div>The browser session expired. Refresh to open the site and log in again — Weft re-syncs automatically.</div></div>
           )}
@@ -53,7 +70,10 @@ export function Detail({ m, onClose }: { m: Mcp; onClose: () => void }) {
               <button className="btn sm" onClick={() => { store.recapture(m.id); toast(`Re-capturing ${m.name}`); }}><Refresh /> Re-capture</button>
             )}
             {m.status === "ready" && (
-              <button className="btn sm" onClick={() => toast("OpenAPI spec exported")}><ExternalLink /> Export OpenAPI</button>
+              <>
+                <button className="btn primary sm" onClick={() => setPicking(true)}><ExternalLink /> Open in client</button>
+                <button className="btn sm" onClick={() => toast("OpenAPI spec exported")}>Export OpenAPI</button>
+              </>
             )}
             {m.status === "paused"
               ? <button className="btn sm" onClick={() => store.resume(m.id)}>Resume</button>
@@ -81,11 +101,15 @@ export function Detail({ m, onClose }: { m: Mcp; onClose: () => void }) {
                   <span className="samples">{e.sampleCount}× {e.confidence === "low" ? "· low" : ""}</span>
                 </div>
               ))}
-              {eps && m.status === "capturing" && <div style={{ color: "var(--ink-3)", fontSize: 12, marginTop: 8 }}>Still sampling… more endpoints will appear.</div>}
+              {eps && eps.length === 0 && m.status === "capturing" && (
+                <div style={{ color: "var(--ink-3)", fontSize: 12 }}>No endpoints yet — browse the site (reload the tab to capture the first one).</div>
+              )}
+              {eps && eps.length > 0 && m.status === "capturing" && <div style={{ color: "var(--ink-3)", fontSize: 12, marginTop: 8 }}>Still sampling… keep browsing and more endpoints will appear.</div>}
             </>
           )}
         </div>
       </div>
+      {picking && <ClientPicker onClose={() => setPicking(false)} />}
     </>
   );
 }
