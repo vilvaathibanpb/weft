@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Weft privacy policy</title>
+  <meta name="description" content="Weft's privacy policy: everything runs locally on your machine. No account, no servers, no telemetry.">
+  <link rel="canonical" href="https://vilvaathibanpb.github.io/weft/privacy.html">
+  <link rel="icon" href="assets/icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="wrap">
+      <a class="brand" href="./"><img src="assets/icon.png" alt="">Weft</a>
+      <div class="links"><a href="./">Home</a><a href="docs.html">Docs</a></div>
+    </div>
+  </nav>
+  <div class="wrap" style="max-width:780px; padding-top:48px; padding-bottom:96px">
+    <main class="doc">
+      <h1>Privacy policy</h1>
+      <p><em>Effective 13 October 2026. Applies to the Weft desktop app and the Weft Chrome extension.</em></p>
+
+      <p><strong>Short version:</strong> Weft runs entirely on your own computer. It has no account, no servers and no telemetry. Nothing Weft handles is sent to the Weft developer or to any third party.</p>
+
+      <h2>What the extension accesses</h2>
+      <p>Only for a site you explicitly convert by clicking <strong>Convert this site to MCP</strong>, and only after you grant Chrome's permission for that site, the extension accesses:</p>
+      <ul>
+        <li><strong>Network activity of that site's tab</strong> — only each API request's method, URL and status code — so Weft can learn the site's API. Request and response headers and bodies are not collected. Chrome's debugger permission is used to observe these requests, and Chrome shows a visible banner while it's active.</li>
+        <li><strong>Cookie names and web-storage keys</strong> for that site, so Weft can tell how the site authenticates. Cookie and token <strong>values are never read into Weft</strong>.</li>
+        <li><strong>The current tab's address</strong>, to show which site you're on.</li>
+      </ul>
+      <p>When your AI client asks Weft to call the site, the extension runs that request inside your open tab of the site, so your existing session is used by the browser itself. The response is passed back to the Weft app and on to your AI client.</p>
+
+      <h2>Where that data goes</h2>
+      <p>Only to the Weft desktop app on the same computer, over <code>127.0.0.1</code> (your machine's loopback address). The app keeps a map of each converted site's endpoints in a local file so it survives restarts, and a short in-memory feed of recent requests. Responses to your AI's requests go to the AI client you connected — which you choose and configure yourself, under that client's own privacy terms.</p>
+
+      <h2>What Weft does not do</h2>
+      <ul>
+        <li>No analytics, tracking, crash reporting or telemetry of any kind.</li>
+        <li>No accounts, and no data sent to the developer or any server.</li>
+        <li>No selling, sharing or transferring of user data to third parties.</li>
+        <li>No use of data for advertising, credit-worthiness or lending purposes.</li>
+        <li>No capturing of sites you haven't converted.</li>
+      </ul>
+
+      <h2>Your control</h2>
+      <p>Pause or delete any converted site in the Weft app, remove the extension from <code>chrome://extensions</code>, and delete Weft's local data folder (see <a href="docs.html#uninstall">Uninstall</a>) to remove everything.</p>
+
+      <h2>Open source</h2>
+      <p>Weft is open source under the MIT license, so you can verify all of the above in the <a href="https://github.com/vilvaathibanpb/weft">source code</a>.</p>
+
+      <h2>Contact</h2>
+      <p>Questions or concerns: <a href="https://github.com/vilvaathibanpb/weft/issues">open an issue on GitHub</a>. Security reports: see <a href="https://github.com/vilvaathibanpb/weft/blob/main/SECURITY.md">SECURITY.md</a>.</p>
+    </main>
+  </div>
+  <footer><div class="wrap"><a class="brand" href="./"><img src="assets/icon.png" alt="">Weft</a><span class="grow">Free &amp; open source · MIT</span><a href="docs.html">Docs</a><a href="https://github.com/vilvaathibanpb/weft">GitHub</a></div></footer>
+</body>
+</html>

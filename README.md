@@ -12,9 +12,9 @@ Cursor over the Model Context Protocol — all on `localhost`.
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux-informational)
 
-<!-- An AI client calling the real Weft core over MCP. Swap in the app walkthrough once recorded —
-     see docs/media/README.md for the storyboard. -->
-![Weft: an AI client querying a captured site over MCP](docs/media/weft-mcp-demo.gif)
+**[Website](https://vilvaathibanpb.github.io/weft/) · [Docs](https://vilvaathibanpb.github.io/weft/docs.html) · [Download](https://github.com/vilvaathibanpb/weft/releases/latest) · [2-min demo](__YOUTUBE_URL__)**
+
+[![Watch the 2-minute demo: Medium → Weft → Claude Code](site/assets/demo-poster.jpg)](__YOUTUBE_URL__)
 
 </div>
 
@@ -61,8 +61,16 @@ credentials (short version: values never leave the browser, and writes require e
 
 ### 1. The app
 
-Grab the installer for your OS from [Releases](https://github.com/vilvaathibanpb/weft/releases),
-or run from source:
+Download the installer for your OS from the [latest release](https://github.com/vilvaathibanpb/weft/releases/latest):
+
+- **macOS** — `Weft_0.1.0_universal.dmg` (Apple Silicon + Intel, signed & notarized)
+- **Windows** — `Weft_0.1.0_x64-setup.exe` or `.msi`
+- **Linux** — `.AppImage`, `.deb` or `.rpm`
+
+You'll also need **Node.js 20+** (your AI client starts Weft's tiny stdio connector with it).
+
+<details>
+<summary>Run from source instead</summary>
 
 ```bash
 git clone https://github.com/vilvaathibanpb/weft
@@ -71,24 +79,27 @@ npm install
 cd apps/desktop && npm run tauri dev
 ```
 
-> Building from source needs [Rust](https://rustup.rs) and the
-> [Tauri prerequisites](https://tauri.app/start/prerequisites/) for your OS.
+Building from source needs [Rust](https://rustup.rs) and the
+[Tauri prerequisites](https://tauri.app/start/prerequisites/) for your OS.
+</details>
 
 ### 2. The extension
 
-`chrome://extensions` → enable **Developer mode** → **Load unpacked** → select the `extension/`
-folder. (A Web Store listing is planned.)
+The Chrome Web Store listing is in review. Until then: download `weft-extension-0.1.0.zip` from
+the [latest release](https://github.com/vilvaathibanpb/weft/releases/latest), unzip it, open
+`chrome://extensions` → enable **Developer mode** → **Load unpacked** → select the folder.
 
-### Connect your AI client
+### 3. Connect your AI client
 
-One command wires Weft into your client's MCP config (non-destructive — it only adds a `weft`
-entry):
+In the app, click **Open in client** on a ready site (or use the **Clients** page) and pick
+Claude Code, Claude Desktop, Codex or Cursor. Weft adds a single `weft` entry to that client's MCP
+config — nothing else is touched. Restart the client.
+
+From a clone you can do the same from the command line:
 
 ```bash
 node scripts/weft-install.mjs claude-code     # or: claude-desktop | codex | cursor | all
 ```
-
-Restart the client. That's it.
 
 ## Use it
 
@@ -118,8 +129,8 @@ Weft is young and honest about it.
 | Live replay (`call_endpoint`) through your session | ✅ works (GET; writes gated) |
 | OpenAPI synthesis | ✅ paths/methods/params/status codes (schemas: not yet) |
 | Desktop UI (library, lifecycle, ⌘K) | ✅ works |
-| One-command client install (Claude Code/Desktop, Codex, Cursor) | ✅ works |
-| Persistence across restarts (SQLite) | 🚧 in progress |
+| One-click client install from the app (Claude Code/Desktop, Codex, Cursor) | ✅ works |
+| Persistence across restarts | ✅ works (local JSON library) |
 | Request/response body → JSON Schema inference | 🚧 planned |
 | "Not possible" auto-detection (signed requests, etc.) | 🚧 partial |
 | WS pairing-token enforcement (MCP socket already enforces) | 🚧 planned |

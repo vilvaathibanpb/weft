@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Weft docs — install, convert a site, connect your AI</title>
+  <meta name="description" content="How to install Weft, convert a website you're logged into into an MCP server, and use it from Claude Code, Claude Desktop, Codex or Cursor.">
+  <link rel="canonical" href="https://vilvaathibanpb.github.io/weft/docs.html">
+  <meta property="og:title" content="Weft docs">
+  <meta property="og:description" content="Install Weft, convert a site, connect your AI client.">
+  <meta property="og:image" content="https://vilvaathibanpb.github.io/weft/assets/og.png">
+  <link rel="icon" href="assets/icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="wrap">
+      <a class="brand" href="./"><img src="assets/icon.png" alt="">Weft</a>
+      <div class="links">
+        <a href="./">Home</a>
+        <a class="btn btn-ghost btn-sm" href="https://github.com/vilvaathibanpb/weft">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="wrap docs">
+    <aside class="toc">
+      <div class="h">Get started</div>
+      <a href="#requirements">Requirements</a>
+      <a href="#install">1. Install the app</a>
+      <a href="#extension">2. Add the extension</a>
+      <a href="#convert">3. Convert a site</a>
+      <a href="#use-once">4. Use the site once</a>
+      <a href="#connect">5. Connect your AI</a>
+      <a href="#ask">6. Ask your AI</a>
+      <div class="h">Reference</div>
+      <a href="#writes">Reads, writes &amp; confirmation</a>
+      <a href="#tools">MCP tools</a>
+      <a href="#manage">Managing sites</a>
+      <a href="#troubleshooting">Troubleshooting</a>
+      <a href="#uninstall">Uninstall</a>
+      <a href="#privacy">Privacy &amp; security</a>
+    </aside>
+
+    <main class="doc">
+      <h1>Weft docs</h1>
+      <p>Weft turns a website you're logged into into a local MCP server, so your AI client can use that site's own API through your own browser session. Setup is about two minutes, then about a minute per site.</p>
+
+      <figure class="shot" style="margin-top:28px">
+        <video controls preload="metadata" playsinline poster="assets/demo-poster.jpg" style="width:100%">
+          <source src="assets/weft-demo.mp4" type="video/mp4">
+        </video>
+      </figure>
+      <figcaption>The whole flow in two minutes: Medium → Weft → Claude Code.</figcaption>
+
+      <h2 id="requirements">Requirements</h2>
+      <ul>
+        <li><strong>macOS</strong> 11+, <strong>Windows</strong> 10+, or a modern <strong>Linux</strong> desktop</li>
+        <li><strong>Google Chrome</strong> 116+ (or another Chromium browser such as Edge, Brave or Arc)</li>
+        <li><strong>Node.js 20+</strong> — your AI client starts Weft's tiny connector with it. Check with <code>node -v</code>; get it from <a href="https://nodejs.org">nodejs.org</a>.</li>
+        <li>An MCP client: <strong>Claude Code</strong>, <strong>Claude Desktop</strong>, <strong>Codex</strong> or <strong>Cursor</strong> (any other MCP client works with manual setup)</li>
+      </ul>
+
+      <h2 id="install">1. Install the app</h2>
+      <p>The Weft app is the local server: it builds a map of each site's API and serves it to your AI over MCP. Download it from the <a href="https://github.com/vilvaathibanpb/weft/releases/latest">latest release</a>:</p>
+      <ul>
+        <li><strong>macOS</strong> — <a href="https://github.com/vilvaathibanpb/weft/releases/latest/download/Weft_0.1.0_universal.dmg"><code>Weft_0.1.0_universal.dmg</code></a> (Apple Silicon and Intel). Open it and drag <strong>Weft</strong> to Applications. It's signed and notarized, so it opens normally.</li>
+        <li><strong>Windows</strong> — the <code>…_x64-setup.exe</code> installer (or the <code>.msi</code>).</li>
+        <li><strong>Linux</strong> — the <code>.AppImage</code>, <code>.deb</code> or <code>.rpm</code>.</li>
+      </ul>
+      <p>Open Weft. It needs to be running while you capture sites and while your AI uses them — it listens only on <code>127.0.0.1</code>.</p>
+
+      <h2 id="extension">2. Add the Chrome extension</h2>
+      <p>The extension is the single button that tells Weft which site to convert. It also runs your AI's requests inside your logged-in tab.</p>
+      <p id="webstore-line"><strong>Chrome Web Store:</strong> the listing is in review. Until it's live, install it manually — it takes 30 seconds:</p>
+      <ol>
+        <li>Download <a href="https://github.com/vilvaathibanpb/weft/releases/latest/download/weft-extension-0.1.0.zip"><code>weft-extension-0.1.0.zip</code></a> from the latest release and unzip it.</li>
+        <li>Open <code>chrome://extensions</code> and switch on <strong>Developer mode</strong> (top right).</li>
+        <li>Click <strong>Load unpacked</strong> and select the unzipped <code>weft-extension</code> folder.</li>
+        <li>Pin <strong>Weft</strong> from the puzzle-piece menu so the button is one click away.</li>
+      </ol>
+      <p>Open the Weft popup: the footer should say <strong>connected to app</strong>. If it says <em>connecting to app…</em>, make sure the Weft app is open.</p>
+
+      <h2 id="convert">3. Convert a site</h2>
+      <ol>
+        <li>Open a site you're <strong>logged into</strong> — for example <code>medium.com</code>.</li>
+        <li>Click the <strong>Weft</strong> toolbar button → <strong>Convert this site to MCP</strong>.</li>
+        <li>Chrome asks once to let Weft access that site. Click <strong>Allow</strong>.</li>
+        <li>Chrome shows a <em>"Weft started debugging this browser"</em> bar. That's expected: it's how Weft sees the site's API calls. Leave it open while you capture; you can close it afterwards.</li>
+      </ol>
+      <figure class="shot"><img src="assets/shot-extension.png" alt="The Weft extension popup on medium.com with the Convert this site to MCP button" loading="lazy"></figure>
+      <figcaption>One button per site. Weft only ever captures sites you convert.</figcaption>
+
+      <h2 id="use-once">4. Use the site once</h2>
+      <p>Weft maps what it sees. Right after converting, <strong>reload the tab</strong>, then open the pages and run the actions you want your AI to reach. For Medium stats, that means opening <code>medium.com/me/stats</code> and a story's stats page.</p>
+      <p>Each API call becomes an endpoint in the Weft app. When the first one arrives, the site switches from <strong>Capturing</strong> to <strong>Ready</strong>. You only do this once per site — Weft remembers it across restarts.</p>
+      <figure class="shot"><img src="assets/shot-detail.png" alt="The Medium site detail in Weft, listing the endpoints it learned" loading="lazy"></figure>
+      <figcaption>Click a site to see the endpoints Weft learned, with methods, parameters and status codes.</figcaption>
+
+      <h2 id="connect">5. Connect your AI client</h2>
+      <p>On a Ready site, click <strong>Open in client</strong> and pick your client. Weft adds one <code>weft</code> entry to that client's MCP config — nothing else is touched — and opens it if it's a desktop app. You can do the same from the <strong>Clients</strong> page.</p>
+      <figure class="shot"><img src="assets/shot-picker.png" alt="The Open in client picker in Weft listing Claude Code, Claude Desktop, Codex and Cursor" loading="lazy"></figure>
+      <figcaption>One click per client. Re-add any time — it's safe to repeat.</figcaption>
+      <div class="callout"><strong>Restart the client afterwards.</strong> MCP servers load at startup: start a new Claude Code session, or fully quit and reopen Claude Desktop or Cursor.</div>
+      <h3>Where the entry goes</h3>
+      <div class="table-wrap"><table>
+        <tr><th>Client</th><th>Config file</th></tr>
+        <tr><td>Claude Code</td><td><code>~/.claude.json</code> (user scope)</td></tr>
+        <tr><td>Claude Desktop</td><td><code>~/Library/Application Support/Claude/claude_desktop_config.json</code> (macOS) · <code>%APPDATA%\Claude\claude_desktop_config.json</code> (Windows)</td></tr>
+        <tr><td>Cursor</td><td><code>~/.cursor/mcp.json</code></td></tr>
+        <tr><td>Codex</td><td><code>~/.codex/config.toml</code></td></tr>
+      </table></div>
+      <h3>Any other MCP client</h3>
+      <p>Point it at the connector that ships inside the app, started with Node:</p>
+<pre>{
+  "mcpServers": {
+    "weft": {
+      "command": "node",
+      "args": ["/Applications/Weft.app/Contents/Resources/mcp-shim/index.js"]
+    }
+  }
+}</pre>
+
+      <h2 id="ask">6. Ask your AI</h2>
+      <p>Just ask in plain English. Your AI discovers what Weft knows (<code>list_sites</code>, <code>list_endpoints</code>), then calls the site with <code>call_endpoint</code>. Some prompts to try with Medium:</p>
+      <ul>
+        <li><em>"Using Weft, which of my Medium stories got the most views in the last 30 days?"</em></li>
+        <li><em>"Use Weft to pull my Medium stats and give me reads vs. views for each story."</em></li>
+        <li><em>"What endpoints does Weft know for medium.com?"</em></li>
+      </ul>
+      <figure class="shot"><img src="assets/shot-claude.png" alt="Claude Code using Weft to answer a question about Medium stats" loading="lazy"></figure>
+      <figcaption>Claude Code calling Medium through Weft, using the session already in Chrome.</figcaption>
+      <div class="callout"><strong>Keep Chrome open on the site.</strong> Calls run inside a tab of that site so your session attaches automatically. If no tab is open, open the site once and try again.</div>
+
+      <h2 id="writes">Reads, writes &amp; confirmation</h2>
+      <p><code>GET</code> requests run freely. Anything else — <code>POST</code>, <code>PUT</code>, <code>PATCH</code>, <code>DELETE</code> — is refused unless the call includes <code>"confirm": true</code>. Your AI has to make that choice explicitly, and clients like Claude Code show you the tool call (with its arguments) for approval before it runs.</p>
+      <div class="callout warn"><strong>GraphQL sites</strong> (Medium, for example) send even read-only queries as <code>POST</code>. Expect your AI to add <code>confirm: true</code> for those, and check the query in the approval prompt — a <code>query</code> only reads, a <code>mutation</code> changes data.</div>
+
+      <h2 id="tools">MCP tools</h2>
+      <div class="table-wrap"><table>
+        <tr><th>Tool</th><th>What it does</th></tr>
+        <tr><td><code>list_sites</code></td><td>Sites you've converted, with status and endpoint count</td></tr>
+        <tr><td><code>status</code></td><td>Ready / Needs login / Outdated / Not possible, per site</td></tr>
+        <tr><td><code>list_endpoints</code></td><td>Methods, path templates, query params and status codes for a site</td></tr>
+        <tr><td><code>get_endpoint</code></td><td>Full detail for one endpoint</td></tr>
+        <tr><td><code>search_endpoints</code></td><td>Find endpoints by method or path</td></tr>
+        <tr><td><code>get_openapi</code></td><td>An OpenAPI 3.1 spec built only from observed traffic</td></tr>
+        <tr><td><code>get_auth_context</code></td><td>Cookie names and storage keys the site uses — never values</td></tr>
+        <tr><td><code>call_endpoint</code></td><td>Make a request with your live session (non-GET needs <code>confirm: true</code>)</td></tr>
+        <tr><td><code>recent_requests</code></td><td>The live feed of captured calls</td></tr>
+      </table></div>
+
+      <h2 id="manage">Managing sites</h2>
+      <div class="table-wrap"><table>
+        <tr><th>Status</th><th>Meaning</th><th>What to do</th></tr>
+        <tr><td>Capturing</td><td>Converted, waiting for the first API call</td><td>Reload the tab and use the site</td></tr>
+        <tr><td>Ready</td><td>Your AI can use it</td><td>—</td></tr>
+        <tr><td>Needs login</td><td>The browser session expired</td><td><strong>Refresh &amp; log in</strong>, then sign in again</td></tr>
+        <tr><td>Outdated</td><td>The site's API changed since capture</td><td><strong>Re-capture</strong> and use the site again</td></tr>
+        <tr><td>Paused</td><td>You paused it; your AI can't call it</td><td><strong>Resume</strong></td></tr>
+        <tr><td>Not possible</td><td>No usable API (e.g. every request is signed)</td><td>Click <strong>Why?</strong> for the reason</td></tr>
+      </table></div>
+      <p>Open a site's detail to <strong>Re-capture</strong>, <strong>Pause</strong>, <strong>Delete</strong>, or <strong>Copy OpenAPI</strong> (copies the synthesized spec to your clipboard). The <strong>Audit log</strong> page shows every request Weft has captured recently — it's kept on this device only. Press <kbd>⌘K</kbd> / <kbd>Ctrl K</kbd> for the command palette.</p>
+
+      <h2 id="troubleshooting">Troubleshooting</h2>
+      <h3>The extension says "connecting to app…"</h3>
+      <p>The Weft app isn't running, or something else is using port <code>8787</code>. Open Weft; quit any other copy.</p>
+      <h3>The site stays on "Capturing"</h3>
+      <p>Weft only sees requests made after you convert. Reload the tab, then click around. Make sure you didn't cancel Chrome's debugging bar — if you did, convert again.</p>
+      <h3>My AI client doesn't see Weft</h3>
+      <p>Restart the client fully (Claude Code: start a new session; Claude Desktop / Cursor: quit from the menu bar and reopen). In Claude Code, run <code>/mcp</code> to check that <code>weft</code> is connected.</p>
+      <h3>"node: command not found" or the server fails to start</h3>
+      <p>Install Node.js 20+ and click <strong>Re-add</strong> in the client picker, so Weft records the full path to <code>node</code>.</p>
+      <h3>A call returns 401 or 403</h3>
+      <p>Your session in Chrome expired or you're logged out. Open the site, sign in, and ask again. Keep a tab of the site open.</p>
+
+      <h2 id="uninstall">Uninstall</h2>
+      <ul>
+        <li>Remove the extension from <code>chrome://extensions</code>.</li>
+        <li>Delete the Weft app.</li>
+        <li>Remove the <code>weft</code> entry from your client's config (see <a href="#connect">where the entry goes</a>), or run <code>node scripts/weft-install.mjs all --uninstall</code> from a clone of the repo.</li>
+        <li>Delete Weft's saved library (captured endpoint maps): <code>~/Library/Application Support/dev.weft.app</code> on macOS, <code>%APPDATA%\weft</code> on Windows, <code>~/.config/weft</code> on Linux.</li>
+      </ul>
+
+      <h2 id="privacy">Privacy &amp; security</h2>
+      <ul>
+        <li>Everything runs on <code>127.0.0.1</code>. There's no account, no server, no telemetry.</li>
+        <li>Weft records cookie <strong>names</strong> and storage <strong>keys</strong> — never their values. Requests run inside your browser tab, so credentials stay in Chrome.</li>
+        <li>Only sites you explicitly convert are captured.</li>
+        <li>Non-GET requests need explicit confirmation.</li>
+      </ul>
+      <p>Read the full <a href="privacy.html">privacy policy</a> and the <a href="https://github.com/vilvaathibanpb/weft/blob/main/SECURITY.md">threat model</a>. Found an issue? <a href="https://github.com/vilvaathibanpb/weft/issues">Open an issue</a> on GitHub.</p>
+    </main>
+  </div>
+
+  <footer>
+    <div class="wrap">
+      <a class="brand" href="./"><img src="assets/icon.png" alt="">Weft</a>
+      <span class="grow">Free &amp; open source · MIT</span>
+      <a href="https://github.com/vilvaathibanpb/weft">GitHub</a>
+      <a href="privacy.html">Privacy</a>
+    </div>
+  </footer>
+</body>
+</html>
