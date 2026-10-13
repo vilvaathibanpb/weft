@@ -137,6 +137,8 @@
 
       <h2 id="writes">Reads, writes &amp; confirmation</h2>
       <p><code>GET</code> requests run freely. Anything else — <code>POST</code>, <code>PUT</code>, <code>PATCH</code>, <code>DELETE</code> — is refused unless the call includes <code>"confirm": true</code>. Your AI has to make that choice explicitly, and clients like Claude Code show you the tool call (with its arguments) for approval before it runs.</p>
+      <figure class="shot"><img src="assets/shot-claude-confirm.png" alt="Claude Code asking for approval before a POST to Medium's GraphQL API with confirm: true" loading="lazy"></figure>
+      <figcaption>Claude Code shows the exact GraphQL query and <code>confirm: true</code> before anything runs.</figcaption>
       <div class="callout warn"><strong>GraphQL sites</strong> (Medium, for example) send even read-only queries as <code>POST</code>. Expect your AI to add <code>confirm: true</code> for those, and check the query in the approval prompt — a <code>query</code> only reads, a <code>mutation</code> changes data.</div>
 
       <h2 id="tools">MCP tools</h2>

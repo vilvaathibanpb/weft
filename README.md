@@ -12,9 +12,9 @@ Cursor over the Model Context Protocol — all on `localhost`.
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux-informational)
 
-**[Website](https://vilvaathibanpb.github.io/weft/) · [Docs](https://vilvaathibanpb.github.io/weft/docs.html) · [Download](https://github.com/vilvaathibanpb/weft/releases/latest) · [2-min demo](__YOUTUBE_URL__)**
+**[Website](https://vilvaathibanpb.github.io/weft/) · [Docs](https://vilvaathibanpb.github.io/weft/docs.html) · [Download](https://github.com/vilvaathibanpb/weft/releases/latest) · [2-min demo](https://youtu.be/nOrxH0BQnvU)**
 
-[![Watch the 2-minute demo: Medium → Weft → Claude Code](site/assets/demo-poster.jpg)](__YOUTUBE_URL__)
+[![Watch the 2-minute demo: Medium → Weft → Claude Code](site/assets/demo-poster.jpg)](https://youtu.be/nOrxH0BQnvU)
 
 </div>
 

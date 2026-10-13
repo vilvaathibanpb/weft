@@ -54,7 +54,7 @@
           <source src="assets/weft-demo.mp4" type="video/mp4">
         </video>
       </div>
-      <p class="sub-cta"><a id="yt-link" href="https://www.youtube.com/@vilvaathiban">Watch on YouTube</a> · 2-minute walkthrough with Medium and Claude Code</p>
+      <p class="sub-cta"><a id="yt-link" href="https://youtu.be/nOrxH0BQnvU">Watch on YouTube</a> · 2-minute walkthrough with Medium and Claude Code</p>
     </div>
   </header>
 
@@ -102,8 +102,8 @@
     <div class="wrap split">
       <div>
         <h2>Real example: your Medium stats, in Claude Code</h2>
-        <p class="section-lede" style="margin-bottom:20px">Medium has no public stats API. With Weft, Claude Code reads your post stats straight from the Medium web app you're signed into — the same request your browser makes on the stats page.</p>
-        <p style="color:var(--ink-2)">No scraping, no copied cookies, no third-party server. Writes are blocked unless you explicitly confirm them.</p>
+        <p class="section-lede" style="margin-bottom:20px">Medium has no public stats API. With Weft, Claude Code queries Medium's own GraphQL API — the one the Medium web app uses — through the session you're already signed into.</p>
+        <p style="color:var(--ink-2)">No scraping, no copied cookies, no third-party server. Anything other than a GET needs explicit confirmation, so you see the exact query before it runs.</p>
         <p><a href="docs.html#ask">See how to ask →</a></p>
       </div>
       <figure class="shot">
