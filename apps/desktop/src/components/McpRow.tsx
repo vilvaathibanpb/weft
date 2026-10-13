@@ -28,7 +28,7 @@ function subline(m: Mcp): string {
     : `${hostOf(m.origin)} · capturing… use the site to map it`;
   if (m.status === "refreshing") return `${hostOf(m.origin)} · re-syncing session…`;
   const when = m.lastRefreshed ? ` · refreshed ${ago(m.lastRefreshed)}` : "";
-  return `${hostOf(m.origin)} · ${m.endpointCount} endpoints${when}`;
+  return `${hostOf(m.origin)} · ${m.endpointCount} endpoint${m.endpointCount === 1 ? "" : "s"}${when}`;
 }
 
 export function McpRow({ m, selected, onOpen }: { m: Mcp; selected: boolean; onOpen: () => void }) {

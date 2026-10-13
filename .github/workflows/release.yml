@@ -1,7 +1,10 @@
 name: Release
 
-# Tag a version (e.g. v0.1.0) to build signed desktop bundles for macOS, Windows and Linux
-# and attach them to a GitHub Release.
+# Tag a version (e.g. v0.1.0) to build the Windows and Linux bundles and attach them to a draft
+# GitHub Release. The macOS build is signed with a Developer ID and notarized on the maintainer's
+# Mac (the signing identity never leaves that keychain) and uploaded to the same release:
+#   cd apps/desktop && APPLE_SIGNING_IDENTITY=... APPLE_API_KEY=... APPLE_API_ISSUER=... \
+#     APPLE_API_KEY_PATH=... npm run tauri build -- --target universal-apple-darwin
 on:
   push:
     tags: ["v*"]
@@ -15,8 +18,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: macos-latest
-            args: "--target universal-apple-darwin"
           - platform: ubuntu-latest
             args: ""
           - platform: windows-latest
@@ -29,8 +30,6 @@ jobs:
           node-version: 20
           cache: npm
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: apps/desktop/src-tauri
