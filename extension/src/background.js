@@ -82,7 +82,8 @@ async function startCapture(origin, tabId) {
   if (!wsConnected()) return { ok: false, error: "Weft app isn't running." };
   send({ t: "convert", origin });
   await snapshotSession(tabId, origin);
-  await attachDebugger(tabId, origin);
+  const err = await attachDebugger(tabId, origin);
+  if (err) return { ok: false, error: err };
   return { ok: true, origin };
 }
 
@@ -110,15 +111,19 @@ async function snapshotSession(tabId, origin) {
 
 /* --------------------- network capture via CDP ----------------------- */
 
+// Returns an error message for the popup, or null once the tab is being captured.
 async function attachDebugger(tabId, origin) {
+  if (attached.has(tabId)) return null; // already capturing this tab
   try {
     await chrome.debugger.attach({ tabId }, "1.3");
     await chrome.debugger.sendCommand({ tabId }, "Network.enable");
     attached.set(tabId, { origin });
     await chrome.storage.session.set({ [`cap_${tabId}`]: origin });
+    return null;
   } catch (e) {
-    // User declined the banner, or already attached → fall back to light mode (webRequest).
-    send({ t: "request", origin, req: { method: "GET", url: origin, headers: [] }, res: { status: 0, headers: [], contentType: "light-mode" } });
+    // Another debugger (e.g. DevTools) holds the tab, or Chrome refused the attach. Say so
+    // rather than pretending: without the debugger Weft can't see the site's API calls.
+    return "Couldn't start capturing this tab. Close DevTools on it (if open) and try again.";
   }
 }
 
@@ -146,28 +151,17 @@ chrome.debugger.onEvent.addListener(async (source, method, params) => {
     // Only forward same-origin API-ish calls (xhr/fetch); skip assets.
     if (!url.startsWith(cap.origin)) return;
 
-    let body;
-    try {
-      const r = await chrome.debugger.sendCommand({ tabId: source.tabId }, "Network.getResponseBody", { requestId: params.requestId });
-      body = r.base64Encoded ? undefined : r.body; // skip binary bodies
-    } catch { /* body unavailable */ }
-
+    // Data minimisation: the core builds its endpoint model from method + URL + status alone,
+    // so headers (which can carry Authorization tokens) and bodies are never forwarded.
     send({
       t: "request",
       origin: cap.origin,
-      req: { method: p.request.method, url, headers: toKV(p.request.headers), body: p.request.postData },
-      res: {
-        status: p.response.status,
-        headers: toKV(p.response.headers),
-        contentType: p.response.mimeType,
-        body: trimBody(body),
-      },
+      req: { method: p.request.method, url },
+      res: { status: p.response.status, contentType: p.response.mimeType },
     });
   }
 });
 
-function toKV(obj = {}) { return Object.entries(obj).map(([k, v]) => ({ k, v: String(v) })); }
-function trimBody(b) { return typeof b === "string" && b.length <= 64 * 1024 ? b : undefined; }
 
 chrome.tabs.onRemoved.addListener((tabId) => {
   if (attached.has(tabId)) {

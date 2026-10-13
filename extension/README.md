@@ -29,7 +29,8 @@ chrome://extensions  →  enable Developer mode  →  Load unpacked  →  select
 2. Click the **Weft** toolbar icon → **Convert this site to MCP**.
 3. Approve the one-time **site permission** prompt.
 4. Chrome shows an **"extension is debugging this browser"** banner — that's expected; it's how
-   Weft reads full request/response bodies. Leave it; don't click "Cancel".
+   Weft sees the site's API calls (it forwards only method, URL and status). Leave it; don't
+   click "Cancel".
 5. **Browse the site normally.** Watch the dev-core terminal — you'll see the session snapshot and
    a live, deduped endpoint list (numeric/UUID path segments collapse to `{id}`/`{uuid}`):
 

@@ -36,9 +36,9 @@ account, no cloud, no telemetry.
 ## Known limitations (first cut)
 
 - The WS (extension) link does not yet enforce the pairing token; the MCP (shim) link does.
-- Binary/streaming response bodies are skipped.
-- Request/response **bodies** are not persisted into schemas yet, so synthesized OpenAPI asserts
-  only paths, methods, query params, and observed status codes.
+- Capture forwards only each request's **method, URL and status** to the app. Request/response
+  headers and bodies are not sent (headers can carry `Authorization` tokens), so synthesized
+  OpenAPI asserts only paths, methods, query params, and observed status codes.
 
 ## Reporting a vulnerability
 

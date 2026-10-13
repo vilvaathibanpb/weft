@@ -67,7 +67,8 @@ Key points:
   Treat the core as the source of truth; the worker is a thin forwarder.
 - **Network capture:** attach `chrome.debugger` to the active tab on enable, subscribe to
   `Network.requestWillBeSent` / `Network.responseReceived` / `Network.loadingFinished`, and
-  pull bodies via `Network.getResponseBody`. Detach on disable.
+  forward method + URL + status only (no headers or bodies — data minimisation). Detach on
+  disable.
 - **Replays:** background receives a `replay` command → tells the content script to run
   `fetch()` in the page so cookies/same-origin headers apply → returns status + body.
 
