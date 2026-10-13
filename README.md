@@ -85,9 +85,12 @@ Building from source needs [Rust](https://rustup.rs) and the
 
 ### 2. The extension
 
-The Chrome Web Store listing is in review. Until then: download `weft-extension.zip` from
-the [latest release](https://github.com/vilvaathibanpb/weft/releases/latest), unzip it, open
-`chrome://extensions` → enable **Developer mode** → **Load unpacked** → select the folder.
+1. Download [`weft-extension.zip`](https://github.com/vilvaathibanpb/weft/releases/latest/download/weft-extension.zip) and unzip it.
+2. Open `chrome://extensions` and turn on **Developer mode** (top right).
+3. Click **Load unpacked** and select the unzipped `weft-extension` folder.
+4. Pin **Weft** from the puzzle-piece menu.
+
+To update later, replace the folder with the new zip's contents and click ↻ on the Weft card.
 
 ### 3. Connect your AI client
 
