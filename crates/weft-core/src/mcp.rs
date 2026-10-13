@@ -26,8 +26,8 @@ pub const TOOLS: &[(&str, &str)] = &[
     ("get_endpoint", "Full detail for one endpoint of a site (method + path template)."),
     ("search_endpoints", "Substring search across endpoint methods and paths (optionally within one site)."),
     ("get_openapi", "Synthesized OpenAPI 3.1 spec for a site, from observed traffic only."),
-    ("get_auth_context", "Cookie names and storage keys detected for a site. Values are never exposed."),
-    ("call_endpoint", "Replay a request against a site using the live browser session. Writes (non-GET) require confirm:true."),
+    ("get_auth_context", "Cookie names, storage keys and auth header names detected for a site. Values are never exposed."),
+    ("call_endpoint", "Replay a request against a site using the live browser session: cookies attach automatically, and auth headers the site uses (e.g. Authorization) are added inside the browser. Writes (non-GET) require confirm:true."),
     ("recent_requests", "The most recently captured requests across all sites."),
     ("status", "Status for one site (or all), so a client can tell Ready from Needs-login."),
 ];
@@ -308,7 +308,9 @@ async fn call_tool(
                 "note": "Names/keys only. Credential values are never exposed by Weft.",
                 "cookieNames": a.cookie_names,
                 "localStorageKeys": a.local_keys,
-                "sessionStorageKeys": a.session_keys
+                "sessionStorageKeys": a.session_keys,
+                "authHeaderNames": a.header_names,
+                "authHeaderNote": "call_endpoint adds these headers' live values inside the browser; you never need to send them."
             })))
         }
 

@@ -61,12 +61,12 @@ Weft lets the user convert a website they are logged into into a local MCP serve
 | `cookies` | Reads the *names* of the converted site's cookies (never values) so the app can show the user how the site authenticates. |
 | `scripting` | Lists localStorage/sessionStorage *keys* (values are never read) and runs the user's AI-requested calls inside the user's own tab so the existing session applies. |
 | `tabs` | Reads the current tab's URL to show which site the user is about to convert, finds an open tab of a converted site to run requests in, and opens/focuses that site when the user needs to log in again. |
-| `storage` | Keeps the pairing token for the local Weft app and remembers which tab is being captured across service-worker restarts. |
+| `storage` | Keeps the pairing token for the local Weft app, remembers which tab is being captured, and holds the latest auth-header values (e.g. `Authorization`) of the converted site in `chrome.storage.session` (in memory, cleared when the browser closes) so the user's requests in that tab carry them. Values are never sent anywhere. |
 | Host permissions (optional, requested per site) | Requested only for the site the user clicks "Convert" on, at that moment. |
 
 **Remote code:** No, I am not using remote code.
 
-**Data usage:** Tick **Website content** and **Web history** (requests made by the converted site are
+**Data usage:** Tick **Authentication information** (auth-header values held in browser memory only), **Website content** and **Web history** (requests made by the converted site are
 observed). All data stays on the user's device and is only sent to the Weft app on `127.0.0.1`.
 Tick all three certifications: not sold to third parties; not used for unrelated purposes; not used
 for creditworthiness/lending.

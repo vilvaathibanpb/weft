@@ -178,6 +178,7 @@
       <p>Install Node.js 20+ and click <strong>Re-add</strong> in the client picker, so Weft records the full path to <code>node</code>.</p>
       <h3>A call returns 401 or 403</h3>
       <p>Your session in Chrome expired or you're logged out. Open the site, sign in, and ask again. Keep a tab of the site open.</p>
+      <p>For sites that log in with a token header, Weft uses the newest token it saw while capturing. If it has expired, reload the site's tab while it's still being captured (or click <strong>Re-capture</strong>) so Weft picks up a fresh one. After a browser restart, use the site once again.</p>
 
       <h2 id="uninstall">Uninstall</h2>
       <ul>
@@ -191,6 +192,7 @@
       <ul>
         <li>Everything runs on <code>127.0.0.1</code>. There's no account, no server, no telemetry.</li>
         <li>Weft records cookie <strong>names</strong> and storage <strong>keys</strong> — never their values. Requests run inside your browser tab, so credentials stay in Chrome.</li>
+        <li>Sites that log in with a header (like <code>Authorization: Bearer …</code>) work too: the extension keeps the latest value of that header in the browser's memory and adds it to requests inside your tab. The Weft app and your AI only see the header's name. It's cleared when you close the browser.</li>
         <li>Only sites you explicitly convert are captured.</li>
         <li>Non-GET requests need explicit confirmation.</li>
       </ul>

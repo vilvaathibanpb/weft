@@ -20,6 +20,12 @@ account, no cloud, no telemetry.
 - **Replays run in your browser, not in the app.** When an AI calls `call_endpoint`, the request
   is executed by the extension inside the live page, where the session cookies attach themselves.
   The app never holds your session tokens.
+- **Auth headers stay in the browser.** Sites whose JavaScript authenticates with a header
+  (`Authorization: Bearer …`, `X-CSRF-Token`, API-key headers) need that header on replays. While
+  capturing, the extension keeps the latest value of such headers in `chrome.storage.session` —
+  in memory, readable only by the extension, cleared when the browser closes — and adds them to
+  replays inside the tab, for that same origin only. The app and your AI only ever see the header
+  **names** (`get_auth_context` → `authHeaderNames`).
 - **Writes require explicit consent.** Any non-`GET` replay is refused unless the caller passes
   `confirm: true`. An AI cannot silently POST/PUT/PATCH/DELETE on your behalf.
 - **Loopback only.** Both sockets bind `127.0.0.1`. The MCP socket additionally requires a random

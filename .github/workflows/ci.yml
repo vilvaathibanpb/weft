@@ -86,3 +86,14 @@ jobs:
       - name: cargo check
         working-directory: apps/desktop/src-tauri
         run: cargo check
+
+  extension:
+    name: Extension (syntax + auth-header tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node --check extension/src/background.js && node --check extension/src/popup.js
+      - run: node extension/test/auth-headers.test.mjs

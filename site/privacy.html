@@ -30,7 +30,8 @@
       <p>Only for a site you explicitly convert by clicking <strong>Convert this site to MCP</strong>, and only after you grant Chrome's permission for that site, the extension accesses:</p>
       <ul>
         <li><strong>Network activity of that site's tab</strong> — only each API request's method, URL and status code — so Weft can learn the site's API. Request and response headers and bodies are not collected. Chrome's debugger permission is used to observe these requests, and Chrome shows a visible banner while it's active.</li>
-        <li><strong>Cookie names and web-storage keys</strong> for that site, so Weft can tell how the site authenticates. Cookie and token <strong>values are never read into Weft</strong>.</li>
+        <li><strong>Cookie names and web-storage keys</strong> for that site, so Weft can tell how the site authenticates. Cookie and storage <strong>values are never read into Weft</strong>.</li>
+        <li><strong>Authentication headers</strong> that the site's own JavaScript sends (for example <code>Authorization</code> or a CSRF token). The extension keeps the latest value in the browser's in-memory session storage, readable only by the extension and cleared when the browser closes, and adds it to requests you ask for in that site's tab. Only the header <em>name</em> is sent to the Weft app; the value never leaves the browser.</li>
         <li><strong>The current tab's address</strong>, to show which site you're on.</li>
       </ul>
       <p>When your AI client asks Weft to call the site, the extension runs that request inside your open tab of the site, so your existing session is used by the browser itself. The response is passed back to the Weft app and on to your AI client.</p>

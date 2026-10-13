@@ -142,6 +142,22 @@ fn handle_message(txt: &str, ctx: &Ctx) {
                 changed = true;
             }
         }
+        Some("auth_headers") => {
+            let origin = v.get("origin").and_then(|o| o.as_str()).unwrap_or("");
+            let names: Vec<String> = v
+                .get("names")
+                .and_then(|n| n.as_array())
+                .map(|a| {
+                    a.iter()
+                        .filter_map(|s| s.as_str().map(String::from))
+                        .collect()
+                })
+                .unwrap_or_default();
+            if !origin.is_empty() && !names.is_empty() {
+                ctx.shared.lock().unwrap().add_auth_headers(origin, names);
+                changed = true;
+            }
+        }
         Some("storage") => {
             let origin = v.get("origin").and_then(|o| o.as_str()).unwrap_or("");
             if !origin.is_empty() {

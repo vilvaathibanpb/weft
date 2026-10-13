@@ -42,6 +42,10 @@ pub struct AuthContext {
     pub cookie_names: Vec<String>,
     pub local_keys: Vec<String>,
     pub session_keys: Vec<String>,
+    /// Request headers the site's own JavaScript uses for auth (e.g. `Authorization`,
+    /// `X-CSRF-Token`). Names only — the values stay in the browser extension.
+    #[serde(default)]
+    pub header_names: Vec<String>,
 }
 
 /// One line in the live request feed.
@@ -164,6 +168,18 @@ impl CoreState {
         let a = self.auth.entry(origin.to_string()).or_default();
         a.local_keys = local;
         a.session_keys = session;
+    }
+
+    /// Record auth header names seen on an origin's requests (merged, values never sent).
+    pub fn add_auth_headers(&mut self, origin: &str, names: Vec<String>) {
+        let a = self.auth.entry(origin.to_string()).or_default();
+        for n in names {
+            let n = n.to_ascii_lowercase();
+            if !a.header_names.contains(&n) {
+                a.header_names.push(n);
+            }
+        }
+        a.header_names.sort();
     }
 
     pub fn set_status(&mut self, id: &str, status: &str) -> Option<Mcp> {
@@ -392,6 +408,20 @@ mod tests {
         assert_eq!(title_of("github.com"), "Github");
         assert_eq!(title_of("localhost"), "Localhost");
         assert_eq!(initials_of("app.linear.app"), "LI");
+    }
+
+    #[test]
+    fn auth_header_names_merge_lowercased_and_sorted() {
+        let mut s = CoreState::default();
+        s.add_auth_headers("https://app.example.com", vec!["Authorization".into()]);
+        s.add_auth_headers(
+            "https://app.example.com",
+            vec!["x-csrf-token".into(), "authorization".into()],
+        );
+        assert_eq!(
+            s.auth["https://app.example.com"].header_names,
+            vec!["authorization", "x-csrf-token"]
+        );
     }
 
     #[test]

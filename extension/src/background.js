@@ -129,6 +129,49 @@ async function attachDebugger(tabId, origin) {
 
 const pending = new Map(); // requestId -> partial
 
+/* ------------- auth headers: values never leave the browser ------------- */
+
+// Headers a site's own JavaScript adds to authenticate (bearer tokens, CSRF tokens, API keys).
+// Cookies attach to replays automatically; these don't — so we remember the latest value per
+// origin in chrome.storage.session (in memory, extension-only, gone when the browser closes)
+// and add them to replays inside the tab. Only the header *names* are sent to the app.
+const AUTH_HEADER = /^(authorization|x-(csrf|xsrf)-token|x-[a-z0-9-]*(token|api-?key|auth)[a-z0-9-]*)$/i;
+const authKey = (origin) => `auth_${origin}`;
+const reportedAuth = new Map(); // origin -> Set of header names already sent to the app
+
+function authHeadersOf(headers = {}) {
+  const out = {};
+  for (const [k, v] of Object.entries(headers)) {
+    if (v && AUTH_HEADER.test(k)) out[k.toLowerCase()] = String(v);
+  }
+  return out;
+}
+
+async function rememberAuthHeaders(origin, headers) {
+  const found = authHeadersOf(headers);
+  const names = Object.keys(found);
+  if (!names.length) return;
+  const key = authKey(origin);
+  const { [key]: prev = {} } = await chrome.storage.session.get(key);
+  await chrome.storage.session.set({ [key]: { ...prev, ...found } });
+  const seen = reportedAuth.get(origin) || new Set();
+  const fresh = names.filter((n) => !seen.has(n));
+  if (fresh.length) {
+    fresh.forEach((n) => seen.add(n));
+    reportedAuth.set(origin, seen);
+    send({ t: "auth_headers", origin, names: fresh });
+  }
+}
+
+// Stored auth headers for the origin, overridden by any the caller passed explicitly.
+async function replayHeaders(origin, given = []) {
+  const { [authKey(origin)]: stored = {} } = await chrome.storage.session.get(authKey(origin));
+  const explicit = Object.fromEntries(given.map((h) => [h.k, h.v]));
+  const overridden = new Set(Object.keys(explicit).map((k) => k.toLowerCase()));
+  const auto = Object.fromEntries(Object.entries(stored).filter(([k]) => !overridden.has(k)));
+  return { ...auto, ...explicit };
+}
+
 chrome.debugger.onEvent.addListener(async (source, method, params) => {
   const cap = attached.get(source.tabId);
   if (!cap) return;
@@ -136,6 +179,7 @@ chrome.debugger.onEvent.addListener(async (source, method, params) => {
   if (method === "Network.requestWillBeSent") {
     const { request, requestId } = params;
     pending.set(requestId, { request });
+    if (request.url.startsWith(cap.origin)) rememberAuthHeaders(cap.origin, request.headers);
   }
 
   if (method === "Network.responseReceived") {
@@ -182,17 +226,19 @@ async function handleCommand(cmd) {
         else send({ t: "replay_result", id: cmd.id, status: 0, headers: [] });
         return;
       }
-      // Run fetch inside the page so the live session cookies attach automatically.
+      // Run fetch inside the page so the live session cookies attach automatically; auth
+      // headers the site uses are added here, inside the browser.
+      const headers = await replayHeaders(cmd.origin, cmd.headers || []);
       const [{ result }] = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        args: [cmd],
+        args: [{ ...cmd, headers }],
         func: async (c) => {
           try {
             const url = c.origin + (c.path || "/");
             const res = await fetch(url, {
               method: c.t === "probe" ? "GET" : c.method,
               credentials: "include",
-              headers: Object.fromEntries((c.headers || []).map((h) => [h.k, h.v])),
+              headers: c.headers,
               body: c.body,
             });
             const text = await res.text().catch(() => "");
