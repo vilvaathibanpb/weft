@@ -1,6 +1,6 @@
 {
   "name": "@weft/devcore",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "A stand-in for the Weft core WS endpoint, so you can test the extension before the Rust backend exists.",

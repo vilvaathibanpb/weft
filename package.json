@@ -1,7 +1,7 @@
 {
   "name": "weft",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Weave any site you're logged into into a local MCP server your AI can use.",
   "workspaces": [
     "apps/desktop",

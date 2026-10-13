@@ -63,8 +63,8 @@ credentials (short version: values never leave the browser, and writes require e
 
 Download the installer for your OS from the [latest release](https://github.com/vilvaathibanpb/weft/releases/latest):
 
-- **macOS** — `Weft_0.1.0_universal.dmg` (Apple Silicon + Intel, signed & notarized)
-- **Windows** — `Weft_0.1.0_x64-setup.exe` or `.msi`
+- **macOS** — `Weft-macOS.dmg` (Apple Silicon + Intel, signed & notarized)
+- **Windows** — `Weft_<version>_x64-setup.exe` or `.msi`
 - **Linux** — `.AppImage`, `.deb` or `.rpm`
 
 You'll also need **Node.js 20+** (your AI client starts Weft's tiny stdio connector with it).
@@ -85,7 +85,7 @@ Building from source needs [Rust](https://rustup.rs) and the
 
 ### 2. The extension
 
-The Chrome Web Store listing is in review. Until then: download `weft-extension-0.1.0.zip` from
+The Chrome Web Store listing is in review. Until then: download `weft-extension.zip` from
 the [latest release](https://github.com/vilvaathibanpb/weft/releases/latest), unzip it, open
 `chrome://extensions` → enable **Developer mode** → **Load unpacked** → select the folder.
 

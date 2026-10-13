@@ -27,7 +27,7 @@ export function Sidebar({
       </div>
 
       <div className="plan" style={{ fontSize: 11.5 }}>
-        <div className="muted">Weft v0.1.0</div>
+        <div className="muted">Weft v{__APP_VERSION__}</div>
         <div className="muted">Free &amp; open source · MIT</div>
       </div>
     </aside>

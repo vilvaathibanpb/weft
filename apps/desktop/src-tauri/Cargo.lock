@@ -4560,7 +4560,7 @@ dependencies = [
 
 [[package]]
 name = "weft-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "axum",
  "futures-util",
@@ -4574,7 +4574,7 @@ dependencies = [
 
 [[package]]
 name = "weft-desktop"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde",
  "serde_json",

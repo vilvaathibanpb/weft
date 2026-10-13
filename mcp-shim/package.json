@@ -1,6 +1,6 @@
 {
   "name": "@weft/mcp-shim",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Tiny stdio↔core proxy that each AI client spawns; forwards MCP JSON-RPC to the running Weft app.",
   "type": "module",
   "bin": {
