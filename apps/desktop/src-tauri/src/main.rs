@@ -75,6 +75,15 @@ fn get_endpoints(id: String, state: State<Shared>) -> Vec<EndpointView> {
     state.lock().unwrap().endpoints_of(&id)
 }
 
+/// The synthesized OpenAPI 3.1 spec for one site (observed traffic only), pretty-printed.
+#[tauri::command]
+fn export_openapi(id: String, state: State<Shared>) -> Option<String> {
+    let s = state.lock().unwrap();
+    let m = s.resolve(&id)?;
+    let doc = weft_core::openapi::synth(&m.name, &m.origin, &s.model_endpoints(&m.origin));
+    serde_json::to_string_pretty(&doc).ok()
+}
+
 /// Recent captured requests across all sites — the app's local activity feed.
 #[tauri::command]
 fn recent_activity(state: State<Shared>) -> Vec<RecentRequest> {
@@ -110,6 +119,7 @@ fn main() {
             delete_mcp,
             get_endpoints,
             recent_activity,
+            export_openapi,
             install_client,
             open_client
         ])

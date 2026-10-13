@@ -72,7 +72,16 @@ export function Detail({ m, onClose }: { m: Mcp; onClose: () => void }) {
             {m.status === "ready" && (
               <>
                 <button className="btn primary sm" onClick={() => setPicking(true)}><ExternalLink /> Open in client</button>
-                <button className="btn sm" onClick={() => toast("OpenAPI spec exported")}>Export OpenAPI</button>
+                <button className="btn sm" onClick={async () => {
+                  try {
+                    const spec = await store.openapi(m.id);
+                    if (!spec) throw new Error("no spec");
+                    await navigator.clipboard.writeText(spec);
+                    toast("OpenAPI spec copied to clipboard");
+                  } catch {
+                    toast("Couldn't copy the OpenAPI spec");
+                  }
+                }}>Copy OpenAPI</button>
               </>
             )}
             {m.status === "paused"

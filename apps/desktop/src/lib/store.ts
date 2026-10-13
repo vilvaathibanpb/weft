@@ -94,6 +94,12 @@ export const store = {
   async resume(id: string) { if (inTauri) { await invoke("resume_mcp", { id }); } patch(id, { status: "ready" }); },
   async remove(id: string) { if (inTauri) { await invoke("delete_mcp", { id }); } state = state.filter((m) => m.id !== id); emit(); },
 
+  /** The site's synthesized OpenAPI spec as JSON text (null outside the app). */
+  async openapi(id: string): Promise<string | null> {
+    if (inTauri) return invoke<string | null>("export_openapi", { id });
+    return null;
+  },
+
   async endpoints(id: string): Promise<Endpoint[]> {
     if (inTauri) return invoke<Endpoint[]>("get_endpoints", { id });
     const m = state.find((x) => x.id === id);
