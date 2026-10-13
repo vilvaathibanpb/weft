@@ -72,7 +72,16 @@ impl CoreState {
     /// Corruption never crashes the app — a bad file just yields a fresh, empty library.
     pub fn load(path: &Path) -> Self {
         match std::fs::read_to_string(path) {
-            Ok(s) if !s.trim().is_empty() => serde_json::from_str(&s).unwrap_or_default(),
+            Ok(s) if !s.trim().is_empty() => {
+                let mut state: Self = serde_json::from_str(&s).unwrap_or_default();
+                for (origin, model) in state.models.iter_mut() {
+                    model.prune_infrastructure();
+                    if let Some(m) = state.mcps.iter_mut().find(|m| &m.origin == origin) {
+                        m.endpoint_count = model.len() as u32;
+                    }
+                }
+                state
+            }
             _ => Self::default(),
         }
     }
@@ -120,6 +129,10 @@ impl CoreState {
     /// Fold one captured request into the model and reflect it on the MCP.
     pub fn observe(&mut self, origin: &str, method: &str, url: &str, status: u16) {
         self.ensure(origin);
+        let (path, _) = crate::model::split_url(url);
+        if crate::model::is_infrastructure(&path) {
+            return; // CDN plumbing — neither an endpoint nor worth showing in the live feed
+        }
         let model = self.models.entry(origin.to_string()).or_default();
         model.observe(method, url, status);
         let count = model.len() as u32;
@@ -129,7 +142,6 @@ impl CoreState {
                 m.status = "ready".to_string(); // first real endpoint → serveable
             }
         }
-        let (path, _) = crate::model::split_url(url);
         self.recent.push_front(RecentRequest {
             origin: origin.to_string(),
             method: method.to_string(),
@@ -383,10 +395,42 @@ mod tests {
     }
 
     #[test]
+    fn cloudflare_plumbing_is_not_an_endpoint() {
+        let mut s = CoreState::default();
+        s.observe(
+            "https://medium.com",
+            "POST",
+            "https://medium.com/cdn-cgi/rum",
+            204,
+        );
+        s.observe(
+            "https://medium.com",
+            "POST",
+            "https://medium.com/cdn-cgi/challenge-platform/h/g/precursor/abc",
+            200,
+        );
+        s.observe(
+            "https://medium.com",
+            "POST",
+            "https://medium.com/_/graphql",
+            200,
+        );
+        let eps = s.models["https://medium.com"].endpoints();
+        assert_eq!(eps.len(), 1);
+        assert_eq!(eps[0].path_template, "/_/graphql");
+        assert_eq!(s.recent.len(), 1);
+    }
+
+    #[test]
     fn save_then_load_round_trips_sites_and_models() {
         let mut s = CoreState::default();
         s.ensure("https://medium.com"); // a just-added site with no traffic yet
-        s.observe("https://app.linear.app", "GET", "https://app.linear.app/api/issues", 200);
+        s.observe(
+            "https://app.linear.app",
+            "GET",
+            "https://app.linear.app/api/issues",
+            200,
+        );
 
         let dir = std::env::temp_dir().join(format!("weft-test-{}", std::process::id()));
         let path = dir.join("state.json");

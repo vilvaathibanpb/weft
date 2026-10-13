@@ -41,6 +41,9 @@ impl Model {
     /// Fold one captured request into the model. Returns true if this was a newly-seen endpoint.
     pub fn observe(&mut self, method: &str, url: &str, status: u16) -> bool {
         let (path, query) = split_url(url);
+        if is_infrastructure(&path) {
+            return false;
+        }
         let template = templatize(&path);
         let key = format!("{method} {template}");
         let is_new = !self.endpoints.contains_key(&key);
@@ -71,6 +74,13 @@ impl Model {
         is_new
     }
 
+    /// Drop endpoints that are CDN/bot-check plumbing rather than the site's own API (they may
+    /// be in a library saved before the capture filter existed).
+    pub fn prune_infrastructure(&mut self) {
+        self.endpoints
+            .retain(|_, e| !is_infrastructure(&e.path_template));
+    }
+
     pub fn len(&self) -> usize {
         self.endpoints.len()
     }
@@ -98,6 +108,12 @@ impl Model {
         }
         Ok(())
     }
+}
+
+/// Paths injected by the CDN in front of a site (Cloudflare's bot challenge and RUM beacon) —
+/// they are not the site's API and replaying them is meaningless.
+pub(crate) fn is_infrastructure(path: &str) -> bool {
+    path.starts_with("/cdn-cgi/")
 }
 
 /// Collapse variable path segments (numeric ids, uuids, long hashes) to templates.
